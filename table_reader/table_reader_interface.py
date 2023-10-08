@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 
 
-class Table_reader_interface(ABC):
+class TableReaderInterface(ABC):
+
     @abstractmethod
-    def extract_cells(self, img: list) -> list:
+    def read(self, img):
         pass
