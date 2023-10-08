@@ -1,14 +1,15 @@
 import base64
-
+from pyxlsb import open_workbook as open_xlsb
 import streamlit as st
 import streamlit.components.v1 as components
 from table_reader.table_process import TableReader
 from cv2 import imdecode
 from numpy import asarray, uint8
 from io import BytesIO
+import pandas as pd
 
 
-@st.cache_resource(ttl=120)
+@st.cache_resource(ttl=3600)
 def load_reader():
     return TableReader()
 
@@ -18,51 +19,12 @@ def get_dict(tablename, dataframe):
     return {'name': tablename, 'DataFrame': dataframe}
 
 
-def download_button(dataframe):
-    buf = BytesIO()
-    columns = dataframe.columns
-    dataframe.to_excel(excel_writer=buf, columns=columns, index=False)
-    buf.seek(0, 0)
-
-    try:
-        # some strings <-> bytes conversions necessary here
-        b64 = base64.b64encode(buf.read()).decode()
-
-    except AttributeError as e:
-        b64 = base64.b64encode(buf).decode()
-
-    dl_link = f"""
-        <html>
-        <head>
-            <title>Start Auto Download file</title>
-            <script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
-            <script>
-                $(function() {{
-                $('a[data-auto-download]').each(function(){{
-                var $this = $(this);
-                setTimeout(function() {{
-                window.location = $this.attr('href');
-                                      }}, 500);
-                                }});
-                }});
-            </script>
-        </head>
-            <body>
-                <div class="wrapper">
-                    <a data-auto-download href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}"></a>
-                </div>
-            </body>
-        </html>
-    """
-
-    return dl_link
-
-
-def download_df(dataframe):
-    components.html(
-        download_button(dataframe),
-        height=0,
-    )
+def to_excel(df):
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    df.to_excel(writer, index=False, sheet_name='Sheet1')
+    processed_data = output.getvalue()
+    return processed_data
 
 
 reader = load_reader()
@@ -123,6 +85,10 @@ for index, val in enumerate(st.session_state['table_list_of_dict']):
         df = val['DataFrame']
         new_df = st.data_editor(df)
         st.session_state['table_list_of_dict'][index]['DataFrame'] = new_df
-        # custom download button. Because st.download_button don't fit here
-        with st.form(key=f'my_form{index}', clear_on_submit=False):
-            submit = st.form_submit_button('Download like excel', on_click=lambda: download_df(df))
+        df_xlsx = to_excel(df)
+        st.download_button(
+            label="Download like excel",
+            data=df_xlsx,
+            file_name=f"{name}.xlsx",
+            mime="application/vnd.ms-excel"
+        )
