@@ -40,7 +40,7 @@ class TableReader(TableReaderInterface):
             img = np.array(page)
             align_im = align_image(img)
             columns_list = self.cell_extractor.extract_cells(img)
-            table = self.cell_reader.read_cells(columns_list, align_im)
+            table = self.cell_reader.read_cells(columns_list, align_im, method='scan')
             df = _list_to_pandas(table)
             df_list.append(df)
         res_df = pd.DataFrame()
@@ -51,7 +51,7 @@ class TableReader(TableReaderInterface):
     def read_image(self, img: list):
         align_im = align_image(img)
         columns_list = self.cell_extractor.extract_cells(img)
-        table = self.cell_reader.read_cells(columns_list, align_im)
+        table = self.cell_reader.read_cells(columns_list, align_im, method='scan')
         df = _list_to_pandas(table)
         return df
 

@@ -1,4 +1,6 @@
 import base64
+import io
+
 from pyxlsb import open_workbook as open_xlsb
 import streamlit as st
 import streamlit.components.v1 as components
@@ -64,7 +66,7 @@ if st.button("Process"):
 
         if extension == 'pdf':
             # all tables in one pdf document merge into one table
-            df = reader.read(uploaded_file, is_pdf=True)
+            df = reader.read(uploaded_file.read(), is_pdf=True)
         else:
             file_bytes = asarray(bytearray(uploaded_file.read()), dtype=uint8)
             opencv_image = imdecode(file_bytes, 1)
@@ -78,7 +80,7 @@ if st.button("Process"):
                 st.session_state['table_list_of_dict'].append(d)
         except ValueError:
             pass
-    # uploaded_files.clear()
+    uploaded_files.clear()
 
 # display processed file into expander list
 for index, val in enumerate(st.session_state['table_list_of_dict']):
