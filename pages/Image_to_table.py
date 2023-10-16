@@ -66,7 +66,8 @@ if st.button("Process"):
 
         if extension == 'pdf':
             # all tables in one pdf document merge into one table
-            df = reader.read(uploaded_file.read(), is_pdf=True)
+            # uploaded_file.read()
+            df = reader.read(uploaded_file, is_pdf=True)
         else:
             file_bytes = asarray(bytearray(uploaded_file.read()), dtype=uint8)
             opencv_image = imdecode(file_bytes, 1)
